@@ -10,6 +10,7 @@ from http import HTTPStatus
 
 # Указываем фикстуру form_data в параметрах теста.
 def test_user_can_create_news_coment(author_client, news, author, form_data):
+    """Авторизованный пользователь может отправить комментарий."""
     url = reverse('news:detail', args=[news.id])
     response = author_client.post(url, data=form_data)
     assertRedirects(
@@ -25,14 +26,12 @@ def test_user_can_create_news_coment(author_client, news, author, form_data):
 
 @pytest.mark.django_db
 def test_anonymous_user_cant_create_note(client, form_data, news):
+    """Анонимный пользователь не может отправить комментарий."""
     url = reverse('news:detail', args=[news.id])
-    # Через анонимный клиент пытаемся создать заметку:
     response = client.post(url, data=form_data)
     login_url = reverse('users:login')
     expected_url = f'{login_url}?next={url}'
-    # Проверяем, что произошла переадресация на страницу логина:
     assertRedirects(response, expected_url)
-    # Считаем количество заметок в БД, ожидаем 0 заметок.
     assert Comment.objects.count() == 0
 
 
@@ -40,14 +39,20 @@ def test_anonymous_user_cant_create_note(client, form_data, news):
     'name', BAD_WORDS
 )
 def test_not_unique_slug(author_client, news, name):
+    """
+    Если комментарий содержит запрещённые слова, он не
+    будет опубликован, а форма вернёт ошибку.
+    """
     url = reverse('news:detail', args=[news.id])
     response = author_client.post(url, data={'text': name})
     assertFormError(response, 'form', 'text', errors=(WARNING))
     assert Comment.objects.count() == 0
 
 
-# Тестирование редактирования
 def test_author_can_edit_note(author_client, form_data, coment, news):
+    """
+    Авторизованный пользователь может редактироватьсвои комментарии.
+    """
     url = reverse('news:edit', args=[coment.id])
     response = author_client.post(url, form_data)
     assertRedirects(
@@ -59,18 +64,19 @@ def test_author_can_edit_note(author_client, form_data, coment, news):
 
 
 def test_other_user_cant_edit_note(not_author_client, form_data, coment):
-    """зарегистрированный пользователь не может редактировать чужой комент"""
+    """
+    Авторизованный пользователь не может редактировать
+    чужие комментарии.
+    """
     url = reverse('news:edit', args=[coment.id])
     response = not_author_client.post(url, form_data)
-    # Проверяем, что страница не найдена:
     assert response.status_code == HTTPStatus.NOT_FOUND
-    # Получаем новый объект запросом из БД.
     note_from_db = Comment.objects.get(id=coment.id)
-    # Проверяем, что атрибуты объекта из БД равны атрибутам заметки до запроса.
     assert coment.text == note_from_db.text
 
 
 def test_author_can_delete_note(author_client, coment, news):
+    """Авторизованный пользователь может удалять свои комментарии."""
     url = reverse('news:delete', args=[coment.id])
     response = author_client.post(url)
     assertRedirects(
@@ -81,6 +87,10 @@ def test_author_can_delete_note(author_client, coment, news):
 
 
 def test_other_user_cant_delete_note(not_author_client, coment):
+    """
+    Авторизованный пользователь не может удалять
+    чужие комментарии.
+    """
     url = reverse('news:delete', args=[coment.id])
     response = not_author_client.post(url)
     assert response.status_code == HTTPStatus.NOT_FOUND

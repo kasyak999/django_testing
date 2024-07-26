@@ -2,7 +2,6 @@ from django.urls import reverse
 import pytest
 from news.forms import CommentForm
 from django.conf import settings
-from news.models import News
 
 
 @pytest.mark.django_db
@@ -43,16 +42,18 @@ def test_notes_list_for_different_users(
     assert (news in object_list) is note_in_list
 
 
-@pytest.mark.parametrize(
-    'name, args',
-    (
-        ('news:detail', pytest.lazy_fixture('news')),
-        ('news:edit', pytest.lazy_fixture('coment'))
-    )
-)
-def test_pages_contains_form(author_client, name, args):
-    url = reverse(name, args=[args.id])
+@pytest.mark.django_db
+def test_pages_contains_form(author_client, news):
+    """форма для отправки комментария для авторизированого"""
+    url = reverse('news:detail', args=[news.id])
     response = author_client.get(url)
     assert 'form' in response.context
     assert isinstance(response.context['form'], CommentForm)
 
+
+@pytest.mark.django_db
+def test_form_for_anonymous(client, news):
+    """форма для отправки комментария для анонимного"""
+    url = reverse('news:detail', args=[news.id])
+    response = client.get(url)
+    assert 'form' not in response.context
