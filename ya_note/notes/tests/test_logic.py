@@ -43,9 +43,7 @@ class TestDetailPage(TestCase):
         }
 
     def test_author_can_add(self):
-        """
-        Залогиненный пользователь может создать заметку, а анонимный — не может.
-        """
+        """Залогиненный пользователь может создать заметку"""
         initial_count = Note.objects.count()
         response = self.auth_client.post(
             reverse('notes:add'), data=self.form_data
@@ -55,9 +53,7 @@ class TestDetailPage(TestCase):
         self.assertEqual(comments_count, initial_count + 1)
 
     def test_anonim_can_add(self):
-        """
-        анонимный пользователь не может оставлять заметки.
-        """
+        """анонимный пользователь не может оставлять заметки."""
         client = Client()
         initial_count = Note.objects.count()
         client.post(reverse('notes:add'), data=self.form_data)

@@ -66,12 +66,10 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url, status_code=302)
 
-
-
     def test_anonymous_user_redirect_2(self):
         """
-        При попытке перейти на страницу списка заметок, редактирования или 
-        удаления заметки анонимный пользователь перенаправляется на 
+        При попытке перейти на страницу списка заметок, редактирования или
+        удаления заметки анонимный пользователь перенаправляется на
         страницу логина.
         """
         login_url = reverse('users:login')
@@ -86,8 +84,8 @@ class TestRoutes(TestCase):
 
     def test_pages_of_a_separate_note_user(self):
         """
-        Страницы отдельной заметки, удаления и редактирования заметки 
-        доступны только автору заметки. 
+        Страницы отдельной заметки, удаления и редактирования заметки
+        доступны только автору заметки.
         """
         self.client.force_login(self.author)
         for name in ('notes:edit', 'notes:delete', 'notes:detail'):
@@ -98,7 +96,7 @@ class TestRoutes(TestCase):
 
     def test_pages_of_a_separate_note_not_user(self):
         """
-        Если на эти страницы попытается зайти другой 
+        Если на эти страницы попытается зайти другой
         пользователь — вернётся ошибка 404.
         """
         self.client.force_login(self.not_author)
