@@ -13,6 +13,7 @@ class TestRoutes(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Лев Толстой')
+        cls.not_author = User.objects.create(username='Лев')
         cls.note = Note.objects.create(
             title='Заголовок', text='Текст', slug='qwe',
             author=cls.author
@@ -95,4 +96,14 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-
+    def test_availability_for_edit_and_delete_3(self):
+        """
+        Если на эти страницы попытается зайти другой 
+        пользователь — вернётся ошибка 404.
+        """
+        self.client.force_login(self.not_author)
+        for name in ('notes:edit', 'notes:delete', 'notes:detail'):
+            with self.subTest(name=name):
+                url = reverse(name, args=(self.note.slug,))
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
