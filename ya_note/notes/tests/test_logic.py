@@ -3,6 +3,7 @@ from notes.models import Note
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from notes.forms import NoteForm
+from http import HTTPStatus
 
 
 User = get_user_model()
@@ -27,18 +28,12 @@ class TestDetailPage(TestCase):
             title=cls.COMMENT_TEXT[0], text=cls.COMMENT_TEXT[1],
             slug=cls.COMMENT_TEXT[2], author=cls.author
         )
-        cls.detail_url = reverse('notes:add')
-
         cls.auth_client = Client()
         cls.auth_client.force_login(cls.author)
-
-        # Делаем всё то же самое для пользователя-читателя.
         cls.reader = User.objects.create(username='Читатель')
         cls.reader_client = Client()
         cls.reader_client.force_login(cls.reader)
-        # URL для редактирования комментария.
         cls.edit_url = reverse('notes:edit', args=(cls.note.slug,))
-        # URL для удаления комментария.
         cls.delete_url = reverse('notes:delete', args=(cls.note.slug,))
         cls.form_data = {
             'title': cls.NEW_COMMENT_TEXT[0],
@@ -46,18 +41,55 @@ class TestDetailPage(TestCase):
             'slug': cls.NEW_COMMENT_TEXT[2]
         }
 
-    def test_author_can_delete(self):
-        # От имени автора комментария отправляем DELETE-запрос на удаление.
-        response = self.auth_client.delete(self.delete_url)
-        # Проверяем, что редирект привёл к разделу с комментариями.
-        # Заодно проверим статус-коды ответов.
+    def test_author_can_add(self):
+        """
+        Залогиненный пользователь может создать заметку, а анонимный — не может.
+        """
+        initial_count = Note.objects.count()
+        response = self.auth_client.post(
+            reverse('notes:add'), data=self.form_data
+        )
         self.assertRedirects(response, reverse('notes:success'))
-        # Считаем количество комментариев в системе.
         comments_count = Note.objects.count()
-        # Ожидаем ноль комментариев в системе.
+        self.assertEqual(comments_count, initial_count + 1)
+
+    def test_anonim_can_add(self):
+        """
+        анонимный пользователь не может оставлять заметки.
+        """
+        client = Client()
+        initial_count = Note.objects.count()
+        client.post(reverse('notes:add'), data=self.form_data)
+        comments_count = Note.objects.count()
+        self.assertEqual(comments_count, initial_count)
+    
+    def test_not_author_can_delete(self):
+        """Пользователь не может удалять чужие заметки"""
+        response = self.reader_client.delete(self.delete_url)
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        comments_count = Note.objects.count()
+        self.assertEqual(comments_count, 1)
+    
+    def test_not_author_can_edit(self):
+        """Пользователь может редактировать чужие заметки"""
+        response = self.reader_client.post(
+            self.edit_url, data=self.form_data
+        )
+        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
+        self.note.refresh_from_db()
+        self.assertNotEqual(self.note.title, self.NEW_COMMENT_TEXT[0])
+        self.assertNotEqual(self.note.text, self.NEW_COMMENT_TEXT[1])
+        self.assertNotEqual(self.note.slug, self.NEW_COMMENT_TEXT[2])
+    
+    def test_author_can_delete(self):
+        """Пользователь может удалять свои заметки"""
+        response = self.auth_client.delete(self.delete_url)
+        self.assertRedirects(response, reverse('notes:success'))
+        comments_count = Note.objects.count()
         self.assertEqual(comments_count, 0)
 
     def test_author_can_edit(self):
+        """Пользователь может редактировать свои заметки"""
         response = self.auth_client.post(
             self.edit_url, data=self.form_data
         )
