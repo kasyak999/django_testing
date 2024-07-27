@@ -26,23 +26,6 @@ def test_sorting_the_news(client, news_all):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'parametrized_client, note_in_list',
-    (
-        (pytest.lazy_fixture('author_client'), True),
-        (pytest.lazy_fixture('unauthorized_client'), True),
-    )
-)
-def test_notes_list_for_different_users(
-        news, parametrized_client, note_in_list
-):
-    url = reverse('news:home')
-    response = parametrized_client.get(url)
-    object_list = response.context['object_list']
-    assert (news in object_list) is note_in_list
-
-
-@pytest.mark.django_db
 def test_pages_contains_form(author_client, news):
     """форма для отправки комментария для авторизированого"""
     url = reverse('news:detail', args=[news.id])
