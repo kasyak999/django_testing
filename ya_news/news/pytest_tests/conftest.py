@@ -8,7 +8,7 @@ from django.test.client import Client
 from news.models import News, Comment
 from datetime import datetime
 from django.conf import settings
-from datetime import datetime, timedelta 
+from datetime import datetime, timedelta
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def author(django_user_model):
 
 
 @pytest.fixture
-def not_author(django_user_model):  
+def not_author(django_user_model):
     return django_user_model.objects.create(username='Не автор')
 
 
@@ -62,11 +62,6 @@ def news_all():
         )
         all_news.append(news)
     return News.objects.bulk_create(all_news)
-
-    # for index in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1):
-    #         news = News(title=f'Новость {index}', text='Просто текст.')
-    #         all_news.append(news)
-    #     News.objects.bulk_create(all_news) 
 
 
 @pytest.fixture

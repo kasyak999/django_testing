@@ -19,7 +19,7 @@ class TestDetailPage(TestCase):
             author=cls.author
         )
         cls.detail_url = reverse('notes:add')
-    
+
     def test_notes(self):
         """
         отдельная заметка передаётся на страницу со списком заметок в
@@ -33,20 +33,20 @@ class TestDetailPage(TestCase):
 
     def test_notes_2(self):
         """
-        в список заметок одного пользователя не попадают заметки 
+        в список заметок одного пользователя не попадают заметки
         другого пользователя;
         """
         url = reverse('notes:list')
         self.client.force_login(self.not_author)
-        response= self.client.get(url)
+        response = self.client.get(url)
         self.assertNotIn(self.note, response.context['object_list'])
 
     def test_authorized_and_anonim_client_has_form(self):
-        """
-        на страницы создания и редактирования заметки передаются формы.
-        """
+        """на страницы создания и редактирования заметки передаются формы."""
         self.client.force_login(self.author)
-        for name, args in [('notes:add', None), ('notes:edit', (self.note.slug,))]:
+        for name, args in [
+            ('notes:add', None), ('notes:edit', (self.note.slug,))
+        ]:
             with self.subTest(name=name, args=args):
                 url = reverse(name, args=args)
                 response = self.client.get(url)

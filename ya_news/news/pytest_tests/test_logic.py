@@ -1,10 +1,8 @@
 from pytest_django.asserts import assertRedirects, assertFormError
 from django.urls import reverse
-from news.models import News, Comment
+from news.models import Comment
 import pytest
-# Импортируем из модуля forms сообщение об ошибке:
-from news.forms import WARNING, BAD_WORDS
-# Дополнительно импортируем функцию slugify.
+from news.forms import BAD_WORDS, WARNING
 from http import HTTPStatus
 
 
@@ -50,9 +48,7 @@ def test_not_unique_slug(author_client, news, name):
 
 
 def test_author_can_edit_note(author_client, form_data, coment, news):
-    """
-    Авторизованный пользователь может редактироватьсвои комментарии.
-    """
+    """Авторизованный пользователь может редактироватьсвои комментарии."""
     url = reverse('news:edit', args=[coment.id])
     response = author_client.post(url, form_data)
     assertRedirects(
