@@ -13,32 +13,42 @@ class TestDetailPage(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.author = User.objects.create(username='Лев Толстой')
+        cls.not_author = User.objects.create(username='Лев')
         cls.note = Note.objects.create(
             title='Заголовок', text='Текст', slug='qwe',
             author=cls.author
         )
         cls.detail_url = reverse('notes:add')
-
-    def test_authorized_client_has_form(self):
+    
+    def test_authorized_client_has_form_3(self):
         """
-        на странице создания заметки передаются формы.
+        отдельная заметка передаётся на страницу со списком заметок в
+        списке object_list в словаре context;
         """
         self.client.force_login(self.author)
-        url = reverse('notes:add')
+        url = reverse('notes:list')
         response = self.client.get(url)
-        self.assertIn('form', response.context)
-        self.assertIsInstance(response.context['form'], NoteForm)
-    
+        self.assertIn('object_list', response.context)
+        self.assertIn(self.note, response.context['object_list'])
+
+    def test_authorized_4444(self):
+        """
+        в список заметок одного пользователя не попадают заметки 
+        другого пользователя;
+        """
+        url = reverse('notes:list')
+        self.client.force_login(self.not_author)
+        response= self.client.get(url)
+        self.assertNotIn(self.note, response.context['object_list'])
+
     def test_authorized_client_has_form_2(self):
         """
-        на странице редактирования заметки передаются формы.
+        на страницы создания и редактирования заметки передаются формы.
         """
         self.client.force_login(self.author)
-        url = reverse('notes:edit', args=(self.note.slug,))
-        response = self.client.get(url)
-        self.assertIn('form', response.context)
-        self.assertIsInstance(response.context['form'], NoteForm)
-
-    def test_unauthorized_client_gets_404(self):
-        response = self.client.get(self.detail_url)
-        self.assertEqual(response.status_code, 302)
+        for name, args in [('notes:add', None), ('notes:edit', (self.note.slug,))]:
+            with self.subTest(name=name, args=args):
+                url = reverse(name, args=args)
+                response = self.client.get(url)
+                self.assertIn('form', response.context)
+                self.assertIsInstance(response.context['form'], NoteForm)
