@@ -19,7 +19,7 @@ class TestRoutes(TestCase):
             author=cls.author
         )
 
-    def test_pages_availability(self):
+    def test_home_page_anonymous_user(self):
         """
         Главная страница доступна анонимному пользователю и регистрации
         пользователей, входа в учётную запись и выхода из неё доступны
@@ -37,7 +37,7 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_availability_for_edit_and_delete_2(self):
+    def test_authenticated_user(self):
         """
         Аутентифицированному пользователю доступна страница со списком
         заметок notes/, страница успешного добавления заметки done/, страница
@@ -50,7 +50,7 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_redirect_for_anonymous_client_2(self):
+    def test_anonymous_user_redirect(self):
         """
         При попытке перейти на страницу успешного добавления записи,
         страницу добавления заметки, анонимный пользователь перенаправляется
@@ -68,7 +68,7 @@ class TestRoutes(TestCase):
 
 
 
-    def test_redirect_for_anonymous_client(self):
+    def test_anonymous_user_redirect_2(self):
         """
         При попытке перейти на страницу списка заметок, редактирования или 
         удаления заметки анонимный пользователь перенаправляется на 
@@ -84,7 +84,7 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
 
-    def test_availability_for_edit_and_delete(self):
+    def test_pages_of_a_separate_note_user(self):
         """
         Страницы отдельной заметки, удаления и редактирования заметки 
         доступны только автору заметки. 
@@ -96,7 +96,7 @@ class TestRoutes(TestCase):
                 response = self.client.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
-    def test_availability_for_edit_and_delete_3(self):
+    def test_pages_of_a_separate_note_not_user(self):
         """
         Если на эти страницы попытается зайти другой 
         пользователь — вернётся ошибка 404.
