@@ -20,7 +20,7 @@ class TestDetailPage(TestCase):
         )
         cls.detail_url = reverse('notes:add')
     
-    def test_authorized_client_has_form_3(self):
+    def test_notes(self):
         """
         отдельная заметка передаётся на страницу со списком заметок в
         списке object_list в словаре context;
@@ -31,7 +31,7 @@ class TestDetailPage(TestCase):
         self.assertIn('object_list', response.context)
         self.assertIn(self.note, response.context['object_list'])
 
-    def test_authorized_4444(self):
+    def test_notes_2(self):
         """
         в список заметок одного пользователя не попадают заметки 
         другого пользователя;
@@ -41,7 +41,7 @@ class TestDetailPage(TestCase):
         response= self.client.get(url)
         self.assertNotIn(self.note, response.context['object_list'])
 
-    def test_authorized_client_has_form_2(self):
+    def test_authorized_and_anonim_client_has_form(self):
         """
         на страницы создания и редактирования заметки передаются формы.
         """
