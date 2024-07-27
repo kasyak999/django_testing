@@ -20,11 +20,23 @@ class TestDetailPage(TestCase):
         cls.detail_url = reverse('notes:add')
 
     def test_authorized_client_has_form(self):
-        # Авторизуем клиент при помощи ранее созданного пользователя.
+        """
+        на странице создания заметки передаются формы.
+        """
         self.client.force_login(self.author)
-        response = self.client.get(self.detail_url)
+        url = reverse('notes:add')
+        response = self.client.get(url)
         self.assertIn('form', response.context)
-        # Проверим, что объект формы соответствует нужному классу формы.
+        self.assertIsInstance(response.context['form'], NoteForm)
+    
+    def test_authorized_client_has_form_2(self):
+        """
+        на странице редактирования заметки передаются формы.
+        """
+        self.client.force_login(self.author)
+        url = reverse('notes:edit', args=(self.note.slug,))
+        response = self.client.get(url)
+        self.assertIn('form', response.context)
         self.assertIsInstance(response.context['form'], NoteForm)
 
     def test_unauthorized_client_gets_404(self):
