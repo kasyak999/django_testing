@@ -1,4 +1,3 @@
-from django.urls import reverse
 import pytest
 from news.forms import CommentForm
 from django.conf import settings

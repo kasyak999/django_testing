@@ -1,5 +1,4 @@
 from pytest_django.asserts import assertRedirects, assertFormError
-from django.urls import reverse
 from news.models import Comment
 import pytest
 from news.forms import BAD_WORDS, WARNING

@@ -1,10 +1,5 @@
-# conftest.py
 import pytest
-
-# Импортируем класс клиента.
 from django.test.client import Client
-
-# Импортируем модель заметки, чтобы создать экземпляр.
 from news.models import News, Comment
 from datetime import datetime
 from django.conf import settings
@@ -22,7 +17,6 @@ def urls(news, coment):
         'edit': reverse('news:edit', args=[coment.id]),
         'delete': reverse('news:delete', args=[coment.id]),
     }
-
 
 
 @pytest.fixture
