@@ -14,7 +14,6 @@ class TestRoutes(TestCase):
     title = 'Заголовок'
     text = 'Текст новости'
     slug = 'qwe'
-
     add = 'notes:add'
     edit = 'notes:edit'
     delete = 'notes:delete'
