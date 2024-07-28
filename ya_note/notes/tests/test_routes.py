@@ -8,7 +8,7 @@ from notes.models import Note
 User = get_user_model()
 
 
-class TestRoutes(TestCase): #rfrf
+class TestRoutes(TestCase):
     name_users_author = 'Лев Толстой'
     name_users_not_author = 'лев'
     title = 'Заголовок'
