@@ -23,34 +23,43 @@ def test_pages_availability_for_anonymous_user(client, name, args):
 
 
 @pytest.mark.parametrize(
-    'parametrized_client, expected_status',
+    'name_url, client_, code',
     (
-        (pytest.lazy_fixture('not_author_client'), HTTPStatus.NOT_FOUND),
-        (pytest.lazy_fixture('author_client'), HTTPStatus.OK),
-    ),
+        (
+            'edit', pytest.lazy_fixture('not_author_client'),
+            HTTPStatus.NOT_FOUND
+        ),
+        (
+            'edit', pytest.lazy_fixture('author_client'),
+            HTTPStatus.OK
+        ),
+        (
+            'delete', pytest.lazy_fixture('not_author_client'),
+            HTTPStatus.NOT_FOUND
+        ),
+        (
+            'delete', pytest.lazy_fixture('author_client'),
+            HTTPStatus.OK
+        ),
+    )
 )
-@pytest.mark.parametrize(
-    'name',
-    ('news:edit', 'news:delete',),
-)
-def test_pages_availability_for_different_users(
-        parametrized_client, name, expected_status, coment
+def test_pages_availability_for_different_users_11(
+        name_url, client_, code, urls
 ):
     """Страницы удаления и редактирования комментария доступны автору"""
-    url = reverse(name, args=[coment.id])
-    response = parametrized_client.get(url)
-    assert response.status_code == expected_status
+    assert client_.get(urls[name_url]).status_code == code
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name',
-    ('news:edit', 'news:delete',),
+    'name_url, expected_url',
+    (
+        ('edit', 'login'),
+        ('delete', 'login'),
+    ),
 )
-def test_anonim(name, coment, client):
+def test_anonim(name_url, expected_url, client, urls):
     """Страницы удаления и редактирования для анонима"""
-    url = reverse(name, args=[coment.id])
-    response = client.get(url)
-    login_url = reverse('users:login')
-    expected_url = f'{login_url}?next={url}'
+    response = client.get(urls[name_url])
+    expected_url = f'{urls[expected_url]}?next={urls[name_url]}'
     assertRedirects(response, expected_url)

@@ -9,6 +9,20 @@ from news.models import News, Comment
 from datetime import datetime
 from django.conf import settings
 from datetime import datetime, timedelta
+from django.urls import reverse
+
+
+@pytest.fixture
+def urls(news, coment):
+    """Фикстура для url"""
+    return {
+        'home': reverse('news:home'),
+        'detail': reverse('news:detail', args=[news.id]),
+        'login': reverse('users:login'),
+        'edit': reverse('news:edit', args=[coment.id]),
+        'delete': reverse('news:delete', args=[coment.id]),
+    }
+
 
 
 @pytest.fixture
