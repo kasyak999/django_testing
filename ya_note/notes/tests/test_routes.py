@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from notes.models import Note
@@ -9,15 +9,35 @@ User = get_user_model()
 
 
 class TestRoutes(TestCase):
+    name_users_author = 'Лев Толстой'
+    name_users_not_author = 'лев'
+    title = 'Заголовок'
+    text = 'Текст новости'
+    slug = 'qwe'
+
+    add = 'notes:add'
+    edit = 'notes:edit'
+    delete = 'notes:delete'
+    success = 'notes:success'
+    edit_delete_detail = ('notes:edit', 'notes:delete', 'notes:detail')
+    add_list_success = ('notes:add', 'notes:list', 'notes:success')
 
     @classmethod
     def setUpTestData(cls):
-        cls.author = User.objects.create(username='Лев Толстой')
-        cls.not_author = User.objects.create(username='Лев')
+        cls.author = User.objects.create(username=cls.name_users_author)
+        cls.not_author = User.objects.create(
+            username=cls.name_users_not_author
+        )
+        cls.client_author = Client()
+        cls.client_not_author = Client()
+        cls.client_author.force_login(cls.author)
+        cls.client_not_author.force_login(cls.not_author)
+
         cls.note = Note.objects.create(
-            title='Заголовок', text='Текст', slug='qwe',
+            title=cls.title, text=cls.text, slug=cls.slug,
             author=cls.author
         )
+        cls.login_url = reverse('users:login')
 
     def test_home_page_anonymous_user(self):
         """
@@ -43,11 +63,10 @@ class TestRoutes(TestCase):
         заметок notes/, страница успешного добавления заметки done/, страница
         добавления новой заметки add/.
         """
-        self.client.force_login(self.author)
-        for name in ('notes:add', 'notes:list', 'notes:success'):
+        for name in self.add_list_success:
             with self.subTest(name=name):
                 url = reverse(name)
-                response = self.client.get(url)
+                response = self.client_author.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_anonymous_user_redirect(self):
@@ -56,13 +75,10 @@ class TestRoutes(TestCase):
         страницу добавления заметки, анонимный пользователь перенаправляется
         на страницу логина.
         """
-        login_url = reverse('users:login')
-        for name in (
-            'notes:add', 'notes:list', 'notes:success'
-        ):
+        for name in self.add_list_success:
             with self.subTest(name=name):
                 url = reverse(name)
-                redirect_url = f'{login_url}?next={url}'
+                redirect_url = f'{self.login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url, status_code=302)
 
@@ -72,13 +88,10 @@ class TestRoutes(TestCase):
         удаления заметки анонимный пользователь перенаправляется на
         страницу логина.
         """
-        login_url = reverse('users:login')
-        for name in (
-            'notes:edit', 'notes:delete', 'notes:detail'
-        ):
+        for name in self.edit_delete_detail:
             with self.subTest(name=name):
                 url = reverse(name, args=(self.note.slug,))
-                redirect_url = f'{login_url}?next={url}'
+                redirect_url = f'{self.login_url}?next={url}'
                 response = self.client.get(url)
                 self.assertRedirects(response, redirect_url)
 
@@ -87,11 +100,10 @@ class TestRoutes(TestCase):
         Страницы отдельной заметки, удаления и редактирования заметки
         доступны только автору заметки.
         """
-        self.client.force_login(self.author)
-        for name in ('notes:edit', 'notes:delete', 'notes:detail'):
+        for name in self.edit_delete_detail:
             with self.subTest(name=name):
                 url = reverse(name, args=(self.note.slug,))
-                response = self.client.get(url)
+                response = self.client_author.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_pages_of_a_separate_note_not_user(self):
@@ -99,9 +111,8 @@ class TestRoutes(TestCase):
         Если на эти страницы попытается зайти другой
         пользователь — вернётся ошибка 404.
         """
-        self.client.force_login(self.not_author)
-        for name in ('notes:edit', 'notes:delete', 'notes:detail'):
+        for name in self.edit_delete_detail:
             with self.subTest(name=name):
                 url = reverse(name, args=(self.note.slug,))
-                response = self.client.get(url)
+                response = self.client_not_author.get(url)
                 self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
