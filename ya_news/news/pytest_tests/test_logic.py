@@ -27,7 +27,7 @@ def test_anonymous_user_cant_create_note(client, form_data, urls):
     """Анонимный пользователь не может отправить комментарий."""
     count = Comment.objects.count()
     response = client.post(urls['detail'], data=form_data)
-    expected_url = f'{urls['login']}?next={urls['detail']}'
+    expected_url = f"{urls['login']}?next={urls['detail']}"
     assertRedirects(response, expected_url)
     assert Comment.objects.count() == count
 
