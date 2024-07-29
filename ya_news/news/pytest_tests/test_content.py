@@ -1,7 +1,16 @@
 import pytest
 from news.forms import CommentForm
 from django.conf import settings
+from django.urls import reverse
 
+
+@pytest.fixture
+def urls(news):
+    """Фикстура для url"""
+    return {
+        'home': reverse('news:home'),
+        'detail': reverse('news:detail', args=[news.id]),
+    }
 
 @pytest.mark.django_db
 def test_news_on_the_main_page(client, news_all, urls):

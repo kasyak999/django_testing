@@ -1,6 +1,21 @@
 from http import HTTPStatus
 import pytest
 from pytest_django.asserts import assertRedirects
+from django.urls import reverse
+
+
+@pytest.fixture
+def urls(news, coment):
+    """Фикстура для url"""
+    return {
+        'login': reverse('users:login'),
+        'logout': reverse('users:logout'),
+        'signup': reverse('users:signup'),
+        'home': reverse('news:home'),
+        'detail': reverse('news:detail', args=[news.id]),
+        'edit': reverse('news:edit', args=[coment.id]),
+        'delete': reverse('news:delete', args=[coment.id]),
+    }
 
 
 @pytest.mark.django_db
@@ -45,9 +60,7 @@ from pytest_django.asserts import assertRedirects
         ),
     )
 )
-def test_status_codes(
-        name_url, client_, code, urls
-):
+def test_status_codes(name_url, client_, code, urls):
     """Проверка статуса страниц"""
     assert client_.get(urls[name_url]).status_code == code
 

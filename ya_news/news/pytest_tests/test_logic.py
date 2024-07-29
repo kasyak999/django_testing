@@ -3,6 +3,18 @@ from news.models import Comment
 import pytest
 from news.forms import BAD_WORDS, WARNING
 from http import HTTPStatus
+from django.urls import reverse
+
+
+@pytest.fixture
+def urls(news, coment):
+    """Фикстура для url"""
+    return {
+        'login': reverse('users:login'),
+        'detail': reverse('news:detail', args=[news.id]),
+        'edit': reverse('news:edit', args=[coment.id]),
+        'delete': reverse('news:delete', args=[coment.id]),
+    }
 
 
 def test_user_can_create_news_coment(
