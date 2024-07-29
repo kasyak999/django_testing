@@ -75,5 +75,19 @@ def news_all():
 
 
 @pytest.fixture
+def coment_all(news, author):
+    all_coment = []
+    for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1):
+        coment = Comment(
+            news=news,
+            text=f'Текст комента {i}',
+            created=datetime.today() + timedelta(days=1),
+            author=author,
+        )
+        all_coment.append(coment)
+    return Comment.objects.bulk_create(all_coment)
+
+
+@pytest.fixture
 def form_data():
     return {'text': 'Текст заметки новый'}
