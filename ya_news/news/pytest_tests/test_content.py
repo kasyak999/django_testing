@@ -12,6 +12,7 @@ def urls(news):
         'detail': reverse('news:detail', args=[news.id]),
     }
 
+
 @pytest.mark.django_db
 def test_news_on_the_main_page(client, news_all, urls):
     """Количество новостей на главной странице"""
