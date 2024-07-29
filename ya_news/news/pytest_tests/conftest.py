@@ -48,12 +48,6 @@ def not_author(django_user_model):
 
 
 @pytest.fixture
-def unauthorized_client():
-    """Не авторизированый"""
-    return Client()
-
-
-@pytest.fixture
 def author_client(author):
     client = Client()
     client.force_login(author)
