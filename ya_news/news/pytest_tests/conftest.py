@@ -8,6 +8,22 @@ from django.urls import reverse
 
 
 @pytest.fixture
+def news():
+    return News.objects.create(
+        title='Заголовок', text='Текст заметки',
+    )
+
+
+@pytest.fixture
+def coment(news, author):
+    return Comment.objects.create(
+        news=news,
+        text='Текст заметки',
+        author=author,
+    )
+
+
+@pytest.fixture
 def urls(news, coment):
     """Фикстура для url"""
     return {
@@ -22,7 +38,6 @@ def urls(news, coment):
 
 
 @pytest.fixture
-# Используем встроенную фикстуру для модели пользователей django_user_model.
 def author(django_user_model):
     return django_user_model.objects.create(username='Автор')
 
@@ -39,26 +54,17 @@ def unauthorized_client():
 
 
 @pytest.fixture
-def author_client(author):  # Вызываем фикстуру автора.
-    # Создаём новый экземпляр клиента, чтобы не менять глобальный.
+def author_client(author):
     client = Client()
-    client.force_login(author)  # Логиним автора в клиенте.
+    client.force_login(author)
     return client
 
 
 @pytest.fixture
 def not_author_client(not_author):
     client = Client()
-    client.force_login(not_author)  # Логиним обычного пользователя в клиенте.
+    client.force_login(not_author)
     return client
-
-
-@pytest.fixture
-def news():
-    return News.objects.create(  # Создаём объект заметки.
-        title='Заголовок',
-        text='Текст заметки',
-    )
 
 
 @pytest.fixture
@@ -72,16 +78,6 @@ def news_all():
         )
         all_news.append(news)
     return News.objects.bulk_create(all_news)
-
-
-@pytest.fixture
-def coment(news, author):
-    coment = Comment.objects.create(  # Создаём объект заметки.
-        news=news,
-        text='Текст заметки',
-        author=author,
-    )
-    return coment
 
 
 @pytest.fixture
