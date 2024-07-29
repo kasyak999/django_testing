@@ -11,9 +11,11 @@ from django.urls import reverse
 def urls(news, coment):
     """Фикстура для url"""
     return {
+        'login': reverse('users:login'),
+        'logout': reverse('users:logout'),
+        'signup': reverse('users:signup'),
         'home': reverse('news:home'),
         'detail': reverse('news:detail', args=[news.id]),
-        'login': reverse('users:login'),
         'edit': reverse('news:edit', args=[coment.id]),
         'delete': reverse('news:delete', args=[coment.id]),
     }

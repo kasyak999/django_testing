@@ -1,27 +1,9 @@
 from http import HTTPStatus
-from django.urls import reverse
 import pytest
 from pytest_django.asserts import assertRedirects
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'name, args',
-    (
-        ('news:home', None),
-        ('users:login', None),
-        ('users:logout', None),
-        ('users:signup', None),
-        ('news:detail', pytest.lazy_fixture('news')),
-    )
-)
-def test_pages_availability_for_anonymous_user(client, name, args):
-    """Проверим, что анонимному пользователю доступно"""
-    url = reverse(name, args=[args.id] if args is not None else args)
-    response = client.get(url)
-    assert response.status_code == HTTPStatus.OK
-
-
 @pytest.mark.parametrize(
     'name_url, client_, code',
     (
@@ -41,12 +23,32 @@ def test_pages_availability_for_anonymous_user(client, name, args):
             'delete', pytest.lazy_fixture('author_client'),
             HTTPStatus.OK
         ),
+        (
+            'home', pytest.lazy_fixture('client'),
+            HTTPStatus.OK
+        ),
+        (
+            'login', pytest.lazy_fixture('client'),
+            HTTPStatus.OK
+        ),
+        (
+            'logout', pytest.lazy_fixture('client'),
+            HTTPStatus.OK
+        ),
+        (
+            'signup', pytest.lazy_fixture('client'),
+            HTTPStatus.OK
+        ),
+        (
+            'detail', pytest.lazy_fixture('client'),
+            HTTPStatus.OK
+        ),
     )
 )
-def test_pages_availability_for_different_users_11(
+def test_status_codes(
         name_url, client_, code, urls
 ):
-    """Страницы удаления и редактирования комментария доступны автору"""
+    """Проверка статуса страниц"""
     assert client_.get(urls[name_url]).status_code == code
 
 
@@ -58,7 +60,7 @@ def test_pages_availability_for_different_users_11(
         ('delete', 'login'),
     ),
 )
-def test_anonim(name_url, expected_url, client, urls):
+def test_anonymous_redirects(name_url, expected_url, client, urls):
     """Страницы удаления и редактирования для анонима"""
     response = client.get(urls[name_url])
     expected_url = f'{urls[expected_url]}?next={urls[name_url]}'
