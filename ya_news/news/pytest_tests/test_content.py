@@ -24,7 +24,7 @@ def test_sorting_the_news(client, news_all, urls):
 
 @pytest.mark.django_db
 def test_sorting_the_comment(client, coment_all, urls):
-    """Новости отсортированы от самой свежей к самой старой"""
+    """Комментарии отсортированы от самой свежей к самой старой"""
     response = client.get(urls['detail'])
     object_list = response.context['news'].comment_set.all()
     all_dates = [coment.created for coment in object_list]
