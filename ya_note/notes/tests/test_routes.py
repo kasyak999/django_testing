@@ -1,42 +1,8 @@
 from http import HTTPStatus
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from notes.models import Note
+from .config import MainConfig
 
 
-User = get_user_model()
-
-
-class TestRoutes(TestCase):
-    name_users_author = 'Лев Толстой'
-    name_users_not_author = 'лев'
-    title = 'Заголовок'
-    text = 'Текст новости'
-    slug = 'qwe'
-    add = 'notes:add'
-    edit = 'notes:edit'
-    delete = 'notes:delete'
-    success = 'notes:success'
-    edit_delete_detail = ('notes:edit', 'notes:delete', 'notes:detail')
-    add_list_success = ('notes:add', 'notes:list', 'notes:success')
-
-    @classmethod
-    def setUpTestData(cls):
-        cls.author = User.objects.create(username=cls.name_users_author)
-        cls.not_author = User.objects.create(
-            username=cls.name_users_not_author
-        )
-        cls.client_author = Client()
-        cls.client_not_author = Client()
-        cls.client_author.force_login(cls.author)
-        cls.client_not_author.force_login(cls.not_author)
-
-        cls.note = Note.objects.create(
-            title=cls.title, text=cls.text, slug=cls.slug,
-            author=cls.author
-        )
-        cls.login_url = reverse('users:login')
+class TestRoutes(MainConfig):
 
     def test_home_page_anonymous_user(self):
         """
@@ -44,16 +10,11 @@ class TestRoutes(TestCase):
         пользователей, входа в учётную запись и выхода из неё доступны
         всем пользователям
         """
-        urls = (
-            ('notes:home', None),
-            ('users:login', None),
-            ('users:logout', None),
-            ('users:signup', None),
-        )
-        for name, args in urls:
+        for name in (
+            self.login_url, self.home_url, self.logout_url, self.signup_url
+        ):
             with self.subTest(name=name):
-                url = reverse(name, args=args)
-                response = self.client.get(url)
+                response = self.client.get(name)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_authenticated_user(self):
@@ -62,10 +23,12 @@ class TestRoutes(TestCase):
         заметок notes/, страница успешного добавления заметки done/, страница
         добавления новой заметки add/.
         """
-        for name in self.add_list_success:
+        for name in (
+            self.add_url, self.list_url, self.success_url,
+            self.edit_url, self.delete_url, self.detail_url
+        ):
             with self.subTest(name=name):
-                url = reverse(name)
-                response = self.client_author.get(url)
+                response = self.client_author.get(name)
                 self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_anonymous_user_redirect(self):
@@ -74,44 +37,21 @@ class TestRoutes(TestCase):
         страницу добавления заметки, анонимный пользователь перенаправляется
         на страницу логина.
         """
-        for name in self.add_list_success:
+        for name in (
+            self.add_url, self.list_url, self.success_url,
+            self.edit_url, self.delete_url, self.detail_url
+        ):
             with self.subTest(name=name):
-                url = reverse(name)
-                redirect_url = f'{self.login_url}?next={url}'
-                response = self.client.get(url)
-                self.assertRedirects(response, redirect_url, status_code=302)
-
-    def test_anonymous_user_redirect_2(self):
-        """
-        При попытке перейти на страницу списка заметок, редактирования или
-        удаления заметки анонимный пользователь перенаправляется на
-        страницу логина.
-        """
-        for name in self.edit_delete_detail:
-            with self.subTest(name=name):
-                url = reverse(name, args=(self.note.slug,))
-                redirect_url = f'{self.login_url}?next={url}'
-                response = self.client.get(url)
+                redirect_url = f'{self.login_url}?next={name}'
+                response = self.client.get(name)
                 self.assertRedirects(response, redirect_url)
-
-    def test_pages_of_a_separate_note_user(self):
-        """
-        Страницы отдельной заметки, удаления и редактирования заметки
-        доступны только автору заметки.
-        """
-        for name in self.edit_delete_detail:
-            with self.subTest(name=name):
-                url = reverse(name, args=(self.note.slug,))
-                response = self.client_author.get(url)
-                self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_pages_of_a_separate_note_not_user(self):
         """
         Если на эти страницы попытается зайти другой
         пользователь — вернётся ошибка 404.
         """
-        for name in self.edit_delete_detail:
+        for name in (self.edit_url, self.delete_url, self.detail_url):
             with self.subTest(name=name):
-                url = reverse(name, args=(self.note.slug,))
-                response = self.client_not_author.get(url)
+                response = self.client_not_author.get(name)
                 self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)

@@ -22,6 +22,11 @@ class MainConfig(TestCase):
     edit = 'notes:edit'
     delete = 'notes:delete'
     success = 'notes:success'
+    detail = 'notes:detail'
+    login = 'users:login'
+    home = 'notes:home'
+    logout = 'users:logout'
+    signup = 'users:signup'
 
     @classmethod
     def setUpTestData(cls):
@@ -43,6 +48,11 @@ class MainConfig(TestCase):
         cls.add_url = reverse(cls.add)
         cls.delete_url = reverse(cls.delete, args=(cls.note.slug,))
         cls.success_url = reverse(cls.success)
+        cls.detail_url = reverse(cls.detail, args=(cls.note.slug,))
+        cls.login_url = reverse(cls.login)
+        cls.home_url = reverse(cls.home)
+        cls.logout_url = reverse(cls.logout)
+        cls.signup_url = reverse(cls.signup)
         cls.form_data = {
             'title': cls.new_title,
             'text': cls.new_text,
